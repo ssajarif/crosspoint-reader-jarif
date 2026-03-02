@@ -68,15 +68,15 @@ void XtcReaderActivity::loop() {
     }
   }
 
-  // Long press BACK (1s+) goes to file selection
+  // Long press BACK (1s+) goes directly to home
   if (mappedInput.isPressed(MappedInputManager::Button::Back) && mappedInput.getHeldTime() >= goHomeMs) {
-    activityManager.goToFileBrowser(xtc ? xtc->getPath() : "");
+    onGoHome();
     return;
   }
 
-  // Short press BACK goes directly to home
+  // Short press BACK goes to file selection
   if (mappedInput.wasReleased(MappedInputManager::Button::Back) && mappedInput.getHeldTime() < goHomeMs) {
-    onGoHome();
+    activityManager.goToFileBrowser(xtc ? xtc->getPath() : "");
     return;
   }
 

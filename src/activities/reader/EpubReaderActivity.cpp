@@ -178,19 +178,19 @@ void EpubReaderActivity::loop() {
                            });
   }
 
-  // Long press BACK (1s+) goes to file selection
+  // Long press BACK (1s+)  goes directly to home (or restores position if viewing footnote)
   if (mappedInput.isPressed(MappedInputManager::Button::Back) && mappedInput.getHeldTime() >= goHomeMs) {
-    activityManager.goToFileBrowser(epub ? epub->getPath() : "");
-    return;
-  }
-
-  // Short press BACK goes directly to home (or restores position if viewing footnote)
-  if (mappedInput.wasReleased(MappedInputManager::Button::Back) && mappedInput.getHeldTime() < goHomeMs) {
     if (footnoteDepth > 0) {
       restoreSavedPosition();
       return;
     }
     onGoHome();
+    return;
+  }
+
+  // Short press BACK goes to file selection
+  if (mappedInput.wasReleased(MappedInputManager::Button::Back) && mappedInput.getHeldTime() < goHomeMs) {
+    activityManager.goToFileBrowser(epub ? epub->getPath() : "");
     return;
   }
 
