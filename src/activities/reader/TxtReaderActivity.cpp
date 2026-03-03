@@ -82,8 +82,25 @@ void TxtReaderActivity::loop() {
 
   // Short press BACK goes to file selection
   if (mappedInput.wasReleased(MappedInputManager::Button::Back) && mappedInput.getHeldTime() < goHomeMs) {
-    activityManager.goToFileBrowser(txt ? txt->getPath() : "");
-    return;  }
+    
+  std::string directoryPath = "/";   // default to root
+
+  if (txt)
+  {
+      std::string txtPath = txt->getPath();
+      size_t lastSlash = txtPath.find_last_of("/\\");
+
+      if (lastSlash != std::string::npos)
+      {
+          directoryPath = (lastSlash == 0)
+                          ? "/"
+                          : txtPath.substr(0, lastSlash);
+      }
+  }
+
+  activityManager.goToFileBrowser(std::move(directoryPath));
+  return;
+  }
 
   // When long-press chapter skip is disabled, turn pages on press instead of release.
   const bool usePressForPageTurn = !SETTINGS.longPressChapterSkip;

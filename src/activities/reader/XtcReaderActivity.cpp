@@ -76,8 +76,24 @@ void XtcReaderActivity::loop() {
 
   // Short press BACK goes to file selection
   if (mappedInput.wasReleased(MappedInputManager::Button::Back) && mappedInput.getHeldTime() < goHomeMs) {
-    activityManager.goToFileBrowser(xtc ? xtc->getPath() : "");
-    return;
+    
+  std::string directoryPath = "/";   // default to root
+
+  if (xtc)
+  {
+      std::string xtcPath = xtc->getPath();
+      size_t lastSlash = xtcPath.find_last_of("/\\");
+
+      if (lastSlash != std::string::npos)
+      {
+          directoryPath = (lastSlash == 0)
+                          ? "/"
+                          : xtcPath.substr(0, lastSlash);
+      }
+  }
+
+  activityManager.goToFileBrowser(std::move(directoryPath));
+  return;
   }
 
   // When long-press chapter skip is disabled, turn pages on press instead of release.
