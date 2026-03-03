@@ -190,8 +190,24 @@ void EpubReaderActivity::loop() {
 
   // Short press BACK goes to file selection
   if (mappedInput.wasReleased(MappedInputManager::Button::Back) && mappedInput.getHeldTime() < goHomeMs) {
-    activityManager.goToFileBrowser(epub ? epub->getPath() : "");
-    return;
+    
+  std::string directoryPath = "/";   // default to root
+
+  if (epub)
+  {
+      std::string epubPath = epub->getPath();
+      size_t lastSlash = epubPath.find_last_of("/\\");
+
+      if (lastSlash != std::string::npos)
+      {
+          directoryPath = (lastSlash == 0)
+                          ? "/"
+                          : epubPath.substr(0, lastSlash);
+      }
+  }
+
+  activityManager.goToFileBrowser(std::move(directoryPath));
+  return;
   }
 
   // When long-press chapter skip is disabled, turn pages on press instead of release.
