@@ -84,6 +84,7 @@ void TxtReaderActivity::loop() {
   if (mappedInput.wasReleased(MappedInputManager::Button::Back) && mappedInput.getHeldTime() < goHomeMs) {
     
   std::string directoryPath = "/";   // default to root
+  std::string selectedFile;
 
   if (txt)
   {
@@ -95,10 +96,11 @@ void TxtReaderActivity::loop() {
           directoryPath = (lastSlash == 0)
                           ? "/"
                           : txtPath.substr(0, lastSlash);
+          selectedFile = txtPath.substr(lastSlash + 1);
       }
   }
 
-  activityManager.goToFileBrowser(std::move(directoryPath));
+  activityManager.goToFileBrowser(std::move(directoryPath), std::move(selectedFile));
   return;
   }
 

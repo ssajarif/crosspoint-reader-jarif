@@ -78,6 +78,7 @@ void XtcReaderActivity::loop() {
   if (mappedInput.wasReleased(MappedInputManager::Button::Back) && mappedInput.getHeldTime() < goHomeMs) {
     
   std::string directoryPath = "/";   // default to root
+  std::string selectedFile;
 
   if (xtc)
   {
@@ -89,10 +90,11 @@ void XtcReaderActivity::loop() {
           directoryPath = (lastSlash == 0)
                           ? "/"
                           : xtcPath.substr(0, lastSlash);
+          selectedFile = xtcPath.substr(lastSlash + 1);
       }
   }
 
-  activityManager.goToFileBrowser(std::move(directoryPath));
+  activityManager.goToFileBrowser(std::move(directoryPath), std::move(selectedFile));
   return;
   }
 

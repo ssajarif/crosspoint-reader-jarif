@@ -192,6 +192,7 @@ void EpubReaderActivity::loop() {
   if (mappedInput.wasReleased(MappedInputManager::Button::Back) && mappedInput.getHeldTime() < goHomeMs) {
     
   std::string directoryPath = "/";   // default to root
+  std::string selectedFile;
 
   if (epub)
   {
@@ -203,10 +204,11 @@ void EpubReaderActivity::loop() {
           directoryPath = (lastSlash == 0)
                           ? "/"
                           : epubPath.substr(0, lastSlash);
+          selectedFile = epubPath.substr(lastSlash + 1);
       }
   }
 
-  activityManager.goToFileBrowser(std::move(directoryPath));
+  activityManager.goToFileBrowser(std::move(directoryPath), std::move(selectedFile));
   return;
   }
 
