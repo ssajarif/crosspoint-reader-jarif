@@ -245,7 +245,7 @@ void BluetoothSettingsActivity::handleDeviceListInput() {
 #endif
 }
 
-void BluetoothSettingsActivity::render(Activity::RenderLock&&) {
+void BluetoothSettingsActivity::render(RenderLock&&) {
 #ifdef ENABLE_BLUETOOTH
   if (viewMode == ViewMode::MAIN_MENU) {
     renderMainMenu();

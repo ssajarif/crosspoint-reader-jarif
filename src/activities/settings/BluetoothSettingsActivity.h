@@ -5,6 +5,7 @@
 #include <string>
 
 #include "activities/Activity.h"
+#include "activities/RenderLock.h"
 #include "MappedInputManager.h"
 
 class BluetoothSettingsActivity : public Activity {
@@ -27,7 +28,7 @@ class BluetoothSettingsActivity : public Activity {
 
   void onEnter() override;
   void loop() override;
-  void render(Activity::RenderLock&&) override;
+  void render(RenderLock&&) override;
 
  private:
   void handleMainMenuInput();
