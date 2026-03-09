@@ -1,19 +1,37 @@
 #include <HalGPIO.h>
 #include <SPI.h>
 
+// Virtual button state for Bluetooth HID injection
+static uint8_t virtualButtonEvents = 0;
+
 void HalGPIO::begin() {
   inputMgr.begin();
   SPI.begin(EPD_SCLK, SPI_MISO, EPD_MOSI, EPD_CS);
   pinMode(UART0_RXD, INPUT);
 }
 
-void HalGPIO::update() { inputMgr.update(); }
+void HalGPIO::update() { 
+  inputMgr.update(); 
+  // Clear virtual events after each frame (one-frame pulse)
+  virtualButtonEvents = 0;
+}
 
-bool HalGPIO::isPressed(uint8_t buttonIndex) const { return inputMgr.isPressed(buttonIndex); }
+void HalGPIO::injectButtonPress(uint8_t buttonIndex) {
+  // Set bit for injected button
+  virtualButtonEvents |= (1 << buttonIndex);
+}
 
-bool HalGPIO::wasPressed(uint8_t buttonIndex) const { return inputMgr.wasPressed(buttonIndex); }
+void HalGPIO::clearVirtualButtons() {
+  virtualButtonEvents = 0;
+}
 
-bool HalGPIO::wasAnyPressed() const { return inputMgr.wasAnyPressed(); }
+bool HalGPIO::isPressed(uint8_t buttonIndex) const { 
+  return inputMgr.isPressed(buttonIndex) || (virtualButtonEvents & (1 << buttonIndex));
+}
+
+bool HalGPIO::wasPressed(uint8_t buttonIndex) const { 
+  return inputMgr.wasPressed(buttonIndex) || (virtualButtonEvents & (1 << buttonIndex));
+}
 
 bool HalGPIO::wasReleased(uint8_t buttonIndex) const { return inputMgr.wasReleased(buttonIndex); }
 

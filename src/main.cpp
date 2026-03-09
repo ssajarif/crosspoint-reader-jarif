@@ -11,6 +11,10 @@
 #include <SPI.h>
 #include <builtinFonts/all.h>
 
+#ifdef ENABLE_BLUETOOTH
+#include <BluetoothHIDManager.h>
+#endif
+
 #include <cstring>
 
 #include "CrossPointSettings.h"
@@ -255,6 +259,29 @@ void setup() {
   UITheme::getInstance().reload();
   ButtonNavigator::setMappedInputManager(mappedInputManager);
 
+#ifdef ENABLE_BLUETOOTH
+  // Initialize Bluetooth HID if enabled in settings
+  if (SETTINGS.bluetoothEnabled) {
+    try {
+      auto& btMgr = BluetoothHIDManager::getInstance();
+      btMgr.setButtonInjector([](uint8_t buttonIndex) {
+        gpio.injectButtonPress(buttonIndex);
+      LOG_INF("MAIN", "Bluetooth injected button: %d", buttonIndex);
+      });
+      
+      if (btMgr.enable()) {
+        LOG_INF("MAIN", "Bluetooth HID initialized successfully");
+      } else {
+        LOG_ERR("MAIN", "Bluetooth HID initialization failed: %s", btMgr.lastError.c_str());
+        SETTINGS.bluetoothEnabled = 0; // Disable if failed
+      }
+    } catch (...) {
+      LOG_ERR("MAIN", "Bluetooth HID initialization failed with exception");
+      SETTINGS.bluetoothEnabled = 0;
+    }
+  }
+#endif
+
   switch (gpio.getWakeupReason()) {
     case HalGPIO::WakeupReason::PowerButton:
       // For normal wakeups, verify power button press duration
@@ -310,6 +337,13 @@ void loop() {
 
   renderer.setFadingFix(SETTINGS.fadingFix);
 
+#ifdef ENABLE_BLUETOOTH
+  // Update Bluetooth HID manager
+  static auto& btMgr = BluetoothHIDManager::getInstance();
+  btMgr.updateActivity();
+  btMgr.checkAutoReconnect();
+#endif
+
   if (Serial && millis() - lastMemPrint >= 10000) {
     LOG_INF("MEM", "Free: %d bytes, Total: %d bytes, Min Free: %d bytes, MaxAlloc: %d bytes", ESP.getFreeHeap(),
             ESP.getHeapSize(), ESP.getMinFreeHeap(), ESP.getMaxAllocHeap());
@@ -354,6 +388,15 @@ void loop() {
   }
 
   const unsigned long sleepTimeoutMs = SETTINGS.getSleepTimeoutMs();
+  
+#ifdef ENABLE_BLUETOOTH
+  // Check if Bluetooth has recent activity to prevent sleep
+  if (btMgr.hasRecentActivity()) {
+    LOG_DBG("SLP", "Bluetooth activity detected, preventing sleep");
+    return;
+  }
+#endif
+  
   if (millis() - lastActivityTime >= sleepTimeoutMs) {
     LOG_DBG("SLP", "Auto-sleep triggered after %lu ms of inactivity", sleepTimeoutMs);
     enterDeepSleep();

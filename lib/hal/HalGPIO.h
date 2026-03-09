@@ -38,6 +38,10 @@ class HalGPIO {
   bool wasAnyReleased() const;
   unsigned long getHeldTime() const;
 
+  // Virtual button injection for Bluetooth HID
+  void injectButtonPress(uint8_t buttonIndex);
+  void clearVirtualButtons();
+
   // Check if USB is connected
   bool isUsbConnected() const;
 

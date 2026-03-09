@@ -53,6 +53,8 @@ inline const std::vector<SettingInfo>& getSettingsList() {
                         "paragraphAlignment", StrId::STR_CAT_READER),
       SettingInfo::Toggle(StrId::STR_EMBEDDED_STYLE, &CrossPointSettings::embeddedStyle, "embeddedStyle",
                           StrId::STR_CAT_READER),
+      SettingInfo::Toggle(StrId::STR_EXTRA_SPACING, &CrossPointSettings::bluetoothEnabled, "bluetoothEnabled",
+                          StrId::STR_CAT_CONTROLS),
       SettingInfo::Toggle(StrId::STR_HYPHENATION, &CrossPointSettings::hyphenationEnabled, "hyphenationEnabled",
                           StrId::STR_CAT_READER),
       SettingInfo::Enum(StrId::STR_ORIENTATION, &CrossPointSettings::orientation,

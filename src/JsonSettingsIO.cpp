@@ -120,6 +120,9 @@ bool JsonSettingsIO::saveSettings(const CrossPointSettings& s, const char* path)
   doc["frontButtonConfirm"] = s.frontButtonConfirm;
   doc["frontButtonLeft"] = s.frontButtonLeft;
   doc["frontButtonRight"] = s.frontButtonRight;
+  
+  // Bluetooth setting — not in SettingsList due to missing StrId
+  doc["bluetoothEnabled"] = s.bluetoothEnabled;
 
   String json;
   serializeJson(doc, json);
@@ -199,6 +202,9 @@ bool JsonSettingsIO::loadSettings(CrossPointSettings& s, const char* json, bool*
   s.frontButtonRight =
       clamp(doc["frontButtonRight"] | (uint8_t)S::FRONT_HW_RIGHT, S::FRONT_BUTTON_HARDWARE_COUNT, S::FRONT_HW_RIGHT);
   CrossPointSettings::validateFrontButtonMapping(s);
+  
+  // Bluetooth setting — not in SettingsList due to missing StrId
+  s.bluetoothEnabled = doc["bluetoothEnabled"] | (uint8_t)0;
 
   LOG_DBG("CPS", "Settings loaded from file");
 
