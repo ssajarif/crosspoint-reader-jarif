@@ -28,6 +28,8 @@ void BluetoothSettingsActivity::onEnter() {
     // Restore Bluetooth persistent state on entry
     if (SETTINGS.bluetoothEnabled && !btMgr->isEnabled()) {
       LOG_INF("BT", "Restoring Bluetooth from settings (enabled)");
+      lastError = "Restoring Bluetooth...";
+      requestUpdate(); // Immediate feedback
       if (btMgr->enable()) {
         lastError = "Bluetooth restored";
       } else {
@@ -36,6 +38,8 @@ void BluetoothSettingsActivity::onEnter() {
       }
     } else if (!SETTINGS.bluetoothEnabled && btMgr->isEnabled()) {
       LOG_INF("BT", "Disabling Bluetooth per settings (disabled)");
+      lastError = "Disabling per settings...";
+      requestUpdate(); // Immediate feedback
       btMgr->disable();
       lastError = "Bluetooth disabled per settings";
     }
@@ -110,6 +114,8 @@ void BluetoothSettingsActivity::handleMainMenuInput() {
       try {
         if (btMgr->isEnabled()) {
           LOG_INF("BT", "Disabling Bluetooth...");
+          lastError = "Disabling...";
+          requestUpdate(); // Immediate feedback
           if (btMgr->disable()) {
             lastError = "Bluetooth disabled";
             SETTINGS.bluetoothEnabled = 0;
@@ -119,6 +125,8 @@ void BluetoothSettingsActivity::handleMainMenuInput() {
           }
         } else {
           LOG_INF("BT", "Enabling Bluetooth...");
+          lastError = "Enabling...";
+          requestUpdate(); // Immediate feedback
           if (btMgr->enable()) {
             lastError = "Bluetooth enabled";
             SETTINGS.bluetoothEnabled = 1;
@@ -138,11 +146,13 @@ void BluetoothSettingsActivity::handleMainMenuInput() {
     } else if (selectedIndex == 1) {
       // Start scan and switch to device list
       if (btMgr->isEnabled()) {
+        lastError = "Starting scan...";
+        requestUpdate(); // Immediate feedback
         btMgr->startScan(10000);
         lastScanTime = millis();
         viewMode = ViewMode::DEVICE_LIST;
         selectedIndex = 0;
-        lastError = "";
+        lastError = ""; // Clear after starting
       } else {
         lastError = "Enable BT first";
       }
@@ -189,10 +199,12 @@ void BluetoothSettingsActivity::handleDeviceListInput() {
   if (mappedInput.wasPressed(MappedInputManager::Button::Right)) {
     // Quick rescan
     LOG_INF("BT", "Quick rescan...");
-    lastError = "Scanning...";
+    lastError = "Refreshing scan...";
+    requestUpdate(); // Immediate feedback
     btMgr->startScan(10000);
     lastScanTime = millis();
     selectedIndex = 0;
+    lastError = ""; // Clear after starting
     requestUpdate();
     return;
   }
@@ -201,10 +213,12 @@ void BluetoothSettingsActivity::handleDeviceListInput() {
     // Check if "Refresh" is selected
     if (selectedIndex == static_cast<int>(devices.size())) {
       LOG_INF("BT", "Refreshing scan...");
-      lastError = "Scanning...";
+      lastError = "Refreshing scan...";
+      requestUpdate(); // Immediate feedback
       btMgr->startScan(10000);
       lastScanTime = millis();
       selectedIndex = 0;
+      lastError = ""; // Clear after starting
       requestUpdate();
       return;
     }
