@@ -1,6 +1,5 @@
 #include "PngToBmpConverter.h"
 
-#include <HalDisplay.h>
 #include <HalStorage.h>
 #include <InflateReader.h>
 #include <Logging.h>
@@ -17,6 +16,8 @@ constexpr bool USE_8BIT_OUTPUT = false;
 constexpr bool USE_ATKINSON = true;
 constexpr bool USE_FLOYD_STEINBERG = false;
 constexpr bool USE_PRESCALE = true;
+constexpr int TARGET_MAX_WIDTH = 480;
+constexpr int TARGET_MAX_HEIGHT = 800;
 // ============================================================================
 
 // BMP writing helpers (same as JpegToBmpConverter)
@@ -821,10 +822,7 @@ bool PngToBmpConverter::pngFileToBmpStreamInternal(FsFile& pngFile, Print& bmpOu
 }
 
 bool PngToBmpConverter::pngFileToBmpStream(FsFile& pngFile, Print& bmpOut, bool crop) {
-  // Use runtime display dimensions (swapped for portrait cover sizing)
-  const int targetWidth = display.getDisplayHeight();
-  const int targetHeight = display.getDisplayWidth();
-  return pngFileToBmpStreamInternal(pngFile, bmpOut, targetWidth, targetHeight, false, crop);
+  return pngFileToBmpStreamInternal(pngFile, bmpOut, TARGET_MAX_WIDTH, TARGET_MAX_HEIGHT, false, crop);
 }
 
 bool PngToBmpConverter::pngFileToBmpStreamWithSize(FsFile& pngFile, Print& bmpOut, int targetMaxWidth,
