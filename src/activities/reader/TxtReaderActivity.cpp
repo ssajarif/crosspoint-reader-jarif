@@ -14,7 +14,6 @@
 #include "fontIds.h"
 
 namespace {
-constexpr unsigned long goHomeMs = 1000;
 constexpr size_t CHUNK_SIZE = 8 * 1024;  // 8KB chunk for reading
 
 // Cache file magic and version
@@ -80,39 +79,13 @@ void TxtReaderActivity::loop() {
     return;
   }
 
-  // Short press BACK goes to file selection
-  if (mappedInput.wasReleased(MappedInputManager::Button::Back) && mappedInput.getHeldTime() < goHomeMs) {
-    
-  std::string directoryPath = "/";   // default to root
-  std::string selectedFile;
-
-  if (txt)
-  {
-      std::string txtPath = txt->getPath();
-      size_t lastSlash = txtPath.find_last_of("/\\");
-
-      if (lastSlash != std::string::npos)
-      {
-          directoryPath = (lastSlash == 0)
-                          ? "/"
-                          : txtPath.substr(0, lastSlash);
-          selectedFile = txtPath.substr(lastSlash + 1);
-      }
+  // Short press BACK goes directly to home
+  if (mappedInput.wasReleased(MappedInputManager::Button::Back) &&
+      mappedInput.getHeldTime() < ReaderUtils::GO_HOME_MS) {
+    onGoHome();
+    return;
   }
 
-  activityManager.goToFileBrowser(std::move(directoryPath), std::move(selectedFile));
-  return;
-  }
-
-  // When long-press chapter skip is disabled, turn pages on press instead of release.
-  const bool usePressForPageTurn = !SETTINGS.longPressChapterSkip;
-  const bool prevTriggered = usePressForPageTurn ? (mappedInput.wasPressed(MappedInputManager::Button::PageBack) ||
-                                                    mappedInput.wasPressed(MappedInputManager::Button::Left))
-                                                 : (mappedInput.wasReleased(MappedInputManager::Button::PageBack) ||
-                                                    mappedInput.wasReleased(MappedInputManager::Button::Left));
-  const bool powerPageTurn = SETTINGS.shortPwrBtn == CrossPointSettings::SHORT_PWRBTN::PAGE_TURN &&
-                             mappedInput.wasReleased(MappedInputManager::Button::Power);
-  const bool nextTriggered = usePressForPageTurn
                                  ? (mappedInput.wasPressed(MappedInputManager::Button::PageForward) || powerPageTurn ||
                                     mappedInput.wasPressed(MappedInputManager::Button::Right))
                                  : (mappedInput.wasReleased(MappedInputManager::Button::PageForward) || powerPageTurn ||
@@ -412,7 +385,12 @@ void TxtReaderActivity::renderPage() {
     }
   };
 
-  // First pass: BW rendering
+  auto* fcm = renderer.getFontCacheManager();
+  auto scope = fcm->createPrewarmScope();
+  renderLines();  // scan pass — text accumulated, no drawing
+  scope.endScanAndPrewarm();
+
+  // BW rendering
   renderLines();
   renderStatusBar();
 
@@ -422,7 +400,7 @@ void TxtReaderActivity::renderPage() {
   } else {
     renderer.displayBuffer();
     pagesUntilFullRefresh--;
-  }
+  ReaderUtils::displayWithRefreshCycle(renderer, pagesUntilFullRefresh);
 
   // Grayscale rendering pass (for anti-aliased fonts)
   if (SETTINGS.textAntiAliasing) {
@@ -432,9 +410,7 @@ void TxtReaderActivity::renderPage() {
     renderer.clearScreen(0x00);
     renderer.setRenderMode(GfxRenderer::GRAYSCALE_LSB);
     renderLines();
-    renderer.copyGrayscaleLsbBuffers();
 
-    renderer.clearScreen(0x00);
     renderer.setRenderMode(GfxRenderer::GRAYSCALE_MSB);
     renderLines();
     renderer.copyGrayscaleMsbBuffers();
