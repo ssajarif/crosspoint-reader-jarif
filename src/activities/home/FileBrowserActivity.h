@@ -19,6 +19,7 @@ class FileBrowserActivity final : public Activity {
 
   // Files state
   std::string basepath = "/";
+  std::string selectedFile;  // optional: filename to pre-select when entering the activity
   std::vector<std::string> files;
 
   // Data loading
@@ -26,8 +27,10 @@ class FileBrowserActivity final : public Activity {
   size_t findEntry(const std::string& name) const;
 
  public:
-  explicit FileBrowserActivity(GfxRenderer& renderer, MappedInputManager& mappedInput, std::string initialPath = "/")
-      : Activity("FileBrowser", renderer, mappedInput), basepath(initialPath.empty() ? "/" : std::move(initialPath)) {}
+  explicit FileBrowserActivity(GfxRenderer& renderer, MappedInputManager& mappedInput, std::string initialPath = "/",
+                               std::string selectedFile = {})
+      : Activity("FileBrowser", renderer, mappedInput), basepath(initialPath.empty() ? "/" : std::move(initialPath)),
+        selectedFile(std::move(selectedFile)) {}
   void onEnter() override;
   void onExit() override;
   void loop() override;

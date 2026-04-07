@@ -109,7 +109,7 @@ void FileBrowserActivity::onEnter() {
   Activity::onEnter();
 
   loadFiles();
-  selectorIndex = 0;
+  selectorIndex = selectedFile.empty() ? 0 : findEntry(selectedFile);
 
   requestUpdate();
 }
